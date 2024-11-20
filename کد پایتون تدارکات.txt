@@ -1,0 +1,150 @@
+from IPython.display import display, HTML
+from google.colab import files
+
+class PurchaseRequestApp:
+    def __init__(self):
+        self.fields = {}
+        self.create_form_fields()
+        self.current_stage = 0
+        self.stages = [
+            "مدیر",
+            "رئیس اداره تدارکات",
+            "مدیر پشتیبانی",
+            "معاون توسعه",
+            "مالی پشتیبانی",
+            "رئیس اداره تدارکات",
+            "کارپرداز"
+        ]
+
+    def create_form_fields(self):
+        labels = ["نام درخواست کننده", "تاریخ", "شرح کالا یا خدمت", "تعداد", "قیمت واحد"]
+        for label in labels:
+            self.fields[label] = input(f"{label}: ")
+        self.fields["مبلغ کل"] = str(int(self.fields["تعداد"]) * int(self.fields["قیمت واحد"]))
+        print(f"مبلغ کل: {self.fields['مبلغ کل']}")
+
+    def submit_request(self):
+        request_data = {label: value for label, value in self.fields.items()}
+        display(HTML("<h2>درخواست شما ارسال شد و در انتظار تایید است.</h2>"))
+        self.show_approval_buttons()
+
+    def show_approval_buttons(self):
+        if self.current_stage == 1:  # رئیس اداره تدارکات
+            display(HTML(f"""
+                <h3>مرحله: {self.stages[self.current_stage]}</h3>
+                <button onclick="approve_request()">تایید</button>
+                <button onclick="reject_request()">رد</button>
+                <button onclick="request_revision()">نیاز به اصلاح</button>
+                <button onclick="request_technical_specifications()">نیاز به ارائه مشخصات فنی</button>
+                <script>
+                    function approve_request() {{
+                        alert("درخواست شما تایید شد و به مرحله بعد ارسال شد.");
+                        google.colab.kernel.invokeFunction('notebook.approve_request', [], {{}});
+                    }}
+                    function reject_request() {{
+                        alert("درخواست شما رد شد و به درخواست کننده بازگشت داده شد.");
+                        google.colab.kernel.invokeFunction('notebook.reject_request', [], {{}});
+                    }}
+                    function request_revision() {{
+                        alert("درخواست شما نیاز به اصلاح دارد و به درخواست کننده بازگشت داده شد.");
+                        google.colab.kernel.invokeFunction('notebook.request_revision', [], {{}});
+                    }}
+                    function request_technical_specifications() {{
+                        alert("درخواست شما نیاز به ارائه مشخصات فنی دارد.");
+                        google.colab.kernel.invokeFunction('notebook.request_technical_specifications', [], {{}});
+                    }}
+                </script>
+            """))
+        else:
+            display(HTML(f"""
+                <h3>مرحله: {self.stages[self.current_stage]}</h3>
+                <button onclick="approve_request()">تایید</button>
+                <button onclick="reject_request()">رد</button>
+                <button onclick="request_revision()">نیاز به اصلاح</button>
+                <script>
+                    function approve_request() {{
+                        alert("درخواست شما تایید شد و به مرحله بعد ارسال شد.");
+                        google.colab.kernel.invokeFunction('notebook.approve_request', [], {{}});
+                    }}
+                    function reject_request() {{
+                        alert("درخواست شما رد شد و به درخواست کننده بازگشت داده شد.");
+                        google.colab.kernel.invokeFunction('notebook.reject_request', [], {{}});
+                    }}
+                    function request_revision() {{
+                        alert("درخواست شما نیاز به اصلاح دارد و به درخواست کننده بازگشت داده شد.");
+                        google.colab.kernel.invokeFunction('notebook.request_revision', [], {{}});
+                    }}
+                </script>
+            """))
+
+    def approve_request(self):
+        if self.current_stage < len(self.stages) - 1:
+            self.current_stage += 1
+            self.show_approval_buttons()
+        else:
+            display(HTML("<h2>درخواست شما تایید نهایی شد و به کارپرداز ارجاع شد.</h2>"))
+
+    def reject_request(self):
+        display(HTML("<h2>درخواست شما رد شد و به درخواست کننده بازگشت داده شد.</h2>"))
+
+    def request_revision(self):
+        display(HTML("<h2>درخواست شما نیاز به اصلاح دارد و به درخواست کننده بازگشت داده شد.</h2>"))
+        self.create_form_fields()
+        self.submit_request()
+
+    def request_technical_specifications(self):
+        display(HTML("""
+            <h2>لطفاً فایل مشخصات فنی را آپلود کنید:</h2>
+            <input type="file" id="file_input">
+            <button onclick="upload_file()">آپلود</button>
+            <script>
+                function upload_file() {{
+                    var file_input = document.getElementById('file_input');
+                    var file = file_input.files[0];
+                    if (file) {{
+                        var reader = new FileReader();
+                        reader.onload = function(e) {{
+                            google.colab.kernel.invokeFunction('notebook.upload_file', [e.target.result], {{}});
+                        }};
+                        reader.readAsDataURL(file);
+                    }}
+                }}
+            </script>
+        """))
+
+    def upload_file(self, file_data):
+        display(HTML("<h2>فایل مشخصات فنی با موفقیت آپلود شد.</h2>"))
+        self.show_technical_approval_buttons()
+
+    def show_technical_approval_buttons(self):
+        display(HTML("""
+            <h3>مرحله: کارشناسان فنی</h3>
+            <button onclick="approve_request()">تایید</button>
+            <button onclick="reject_request()">رد</button>
+            <button onclick="request_revision()">نیاز به اصلاح</button>
+            <script>
+                function approve_request() {{
+                    alert("درخواست شما تایید شد و به مرحله بعد ارسال شد.");
+                    google.colab.kernel.invokeFunction('notebook.approve_request', [], {{}});
+                }}
+                function reject_request() {{
+                    alert("درخواست شما رد شد و به درخواست کننده بازگشت داده شد.");
+                    google.colab.kernel.invokeFunction('notebook.reject_request', [], {{}});
+                }}
+                function request_revision() {{
+                    alert("درخواست شما نیاز به اصلاح دارد و به درخواست کننده بازگشت داده شد.");
+                    google.colab.kernel.invokeFunction('notebook.request_revision', [], {{}});
+                }}
+            </script>
+        """))
+
+if __name__ == "__main__":
+    app = PurchaseRequestApp()
+    app.submit_request()
+
+    from google.colab import output
+    output.register_callback('notebook.approve_request', app.approve_request)
+    output.register_callback('notebook.reject_request', app.reject_request)
+    output.register_callback('notebook.request_revision', app.request_revision)
+    output.register_callback('notebook.request_technical_specifications', app.request_technical_specifications)
+    output.register_callback('notebook.upload_file', app.upload_file)
